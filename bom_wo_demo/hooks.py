@@ -8,7 +8,20 @@ app_license = "mit"
 # Apps
 # ------------------
 
-# required_apps = []
+# The demo routes to ERPNext's native BOM and Work Order screens and uses its
+# Company, Item, UOM and Warehouse DocTypes in the demo forms.
+required_apps = ["erpnext"]
+
+after_install = "bom_wo_demo.install.after_install"
+after_migrate = "bom_wo_demo.install.after_migrate"
+
+override_doctype_class = {
+	"Work Order": "bom_wo_demo.overrides.work_order.ManualMaterialsWorkOrder",
+}
+
+doctype_js = {
+	"Work Order": "public/js/work_order_manual_materials.js",
+}
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
