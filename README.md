@@ -24,12 +24,12 @@ After migration, open **Production Mode Selector** from Desk, create a selector 
 
 ### Manual materials on standard Work Orders
 
-The app also adds **Manual Material Entry (No BOM)** to ERPNext Work Orders.
+The app also adds a **Production Mode** select field to ERPNext Work Orders.
 
-- When unchecked, a BOM is required and the standard ERPNext workflow remains unchanged.
-- When checked, BOM-derived Required Items are not generated. Enter stock-item rows and a positive **Required Qty** manually.
-- After submitting a manual Work Order, use **Create → Material Transfer** or **Create → Manufacture**. The app creates a normal draft Stock Entry with quantities scaled to the requested partial-production quantity. Review and submit that Stock Entry through ERPNext's standard form, particularly where serial or batch details are required.
-- Manual mode blocks Job Cards/operations, Production Plan-linked Work Orders, and subcontracting combinations until they receive dedicated integration and tests.
+- **BOM** requires a BOM and retains the standard ERPNext workflow unchanged.
+- **Assembly** and **Disassembly** use manually maintained Required Items and do not generate BOM-derived materials.
+- After submitting an Assembly or Disassembly Work Order, use **Create → Material Transfer** or **Create → Manufacture**. The app creates a normal draft Stock Entry with quantities scaled to the requested partial-production quantity. Review and submit that Stock Entry through ERPNext's standard form, particularly where serial or batch details are required.
+- Manual modes block Job Cards/operations, Production Plan-linked Work Orders, and subcontracting combinations until they receive dedicated integration and tests.
 
 This feature must be installed and verified on a non-production ERPNext v15 site before use. The repository currently has no Bench or site, so the integration tests and ledger verification could not be run here.
 

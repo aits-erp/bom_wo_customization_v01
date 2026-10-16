@@ -24,8 +24,8 @@ def make_manual_stock_entry(work_order_name, purpose, qty):
 	work_order.check_permission("write")
 	frappe.has_permission("Stock Entry", "create", throw=True)
 
-	if not work_order.custom_use_manual_materials:
-		frappe.throw(_("This action is only available for Manual Material Entry Work Orders."))
+	if not work_order.use_manual_materials:
+		frappe.throw(_("This action is only available for Assembly or Disassembly Work Orders."))
 	if work_order.docstatus != 1:
 		frappe.throw(_("Submit the Work Order before creating a Stock Entry."))
 

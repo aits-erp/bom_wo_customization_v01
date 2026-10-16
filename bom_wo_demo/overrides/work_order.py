@@ -20,12 +20,16 @@ class ManualMaterialsWorkOrder(WorkOrder):
 
 	@property
 	def use_manual_materials(self):
-		return cint(self.get("custom_use_manual_materials"))
+		mode = self.get("custom_production_mode")
+		if not mode and cint(self.get("custom_use_manual_materials")):
+			# Compatibility for a document saved before the mode migration ran.
+			mode = "Assembly"
+		return mode in ("Assembly", "Disassembly")
 
 	def validate(self):
 		if not self.use_manual_materials:
 			if not self.bom_no:
-				frappe.throw(_("BOM is required unless Manual Material Entry (No BOM) is enabled."))
+				frappe.throw(_("BOM is required when Production Mode is BOM."))
 			return super().validate()
 
 		self._validate_manual_mode_context()
@@ -62,13 +66,13 @@ class ManualMaterialsWorkOrder(WorkOrder):
 		for fieldname, label in unsupported_fields.items():
 			if self.get(fieldname):
 				frappe.throw(
-					_("Manual Material Entry cannot be used with {0}.").format(label),
+					_("Assembly and Disassembly cannot be used with {0}.").format(label),
 					title=_("Unsupported manual-material combination"),
 				)
 
 		if self.operations:
 			frappe.throw(
-				_("Manual Material Entry currently does not support operations or Job Cards."),
+				_("Assembly and Disassembly currently do not support operations or Job Cards."),
 				title=_("Unsupported manual-material combination"),
 			)
 
@@ -101,7 +105,7 @@ class ManualMaterialsWorkOrder(WorkOrder):
 	def _validate_manual_required_items(self):
 		rows = self.get("required_items") or []
 		if not rows:
-			frappe.throw(_("Add at least one Required Item for Manual Material Entry."))
+			frappe.throw(_("Add at least one Required Item for Assembly or Disassembly."))
 
 		for row in rows:
 			if not row.item_code:

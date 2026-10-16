@@ -4,16 +4,16 @@ frappe.ui.form.on("Work Order", {
 		add_manual_stock_entry_actions(frm);
 	},
 
-	custom_use_manual_materials(frm) {
-		if (frm.doc.custom_use_manual_materials && frm.doc.bom_no) {
+	custom_production_mode(frm) {
+		if (is_manual_mode(frm) && frm.doc.bom_no) {
 			frappe.confirm(
-				__("Manual mode does not manage BOM-derived materials. Clear the selected BOM and keep the visible Required Items for review?"),
+				__("Assembly and Disassembly do not manage BOM-derived materials. Clear the selected BOM and keep the visible Required Items for review?"),
 				() => {
 					frm.set_value("bom_no", "");
 					set_manual_mode_ui(frm);
 				},
 				() => {
-					frm.set_value("custom_use_manual_materials", 0);
+					frm.set_value("custom_production_mode", "BOM");
 					set_manual_mode_ui(frm);
 				}
 			);
@@ -23,16 +23,20 @@ frappe.ui.form.on("Work Order", {
 	},
 
 	bom_no(frm) {
-		if (frm.doc.custom_use_manual_materials) return;
+		if (is_manual_mode(frm)) return;
 	},
 
 	qty(frm) {
-		if (frm.doc.custom_use_manual_materials) return;
+		if (is_manual_mode(frm)) return;
 	}
 });
 
+function is_manual_mode(frm) {
+	return ["Assembly", "Disassembly"].includes(frm.doc.custom_production_mode);
+}
+
 function set_manual_mode_ui(frm) {
-	const manual = !!frm.doc.custom_use_manual_materials;
+	const manual = is_manual_mode(frm);
 	const editable = manual && frm.doc.docstatus === 0;
 	frm.toggle_reqd("bom_no", !manual);
 	frm.toggle_display("bom_no", !manual || !!frm.doc.bom_no);
@@ -45,10 +49,10 @@ function set_manual_mode_ui(frm) {
 				make_manual_stock_entry(frm, purpose);
 				return;
 			}
-			frappe.msgprint(__("This Stock Entry purpose is not supported in Manual Material Entry mode."));
+			frappe.msgprint(__("This Stock Entry purpose is not supported in Assembly or Disassembly mode."));
 		};
 		frm.set_intro(
-			__("Manual Material Entry is active. Required Items are maintained manually and will not be regenerated from a BOM."),
+			__("{0} mode is active. Required Items are maintained manually and will not be regenerated from a BOM.", [frm.doc.custom_production_mode]),
 			"orange"
 		);
 	}
@@ -64,7 +68,7 @@ function set_manual_mode_ui(frm) {
 }
 
 function add_manual_stock_entry_actions(frm) {
-	if (!frm.doc.custom_use_manual_materials || frm.doc.docstatus !== 1) return;
+	if (!is_manual_mode(frm) || frm.doc.docstatus !== 1) return;
 
 	frm.add_custom_button(__("Material Transfer"), () => make_manual_stock_entry(frm, "Material Transfer for Manufacture"), __("Create"));
 	frm.add_custom_button(__("Manufacture"), () => make_manual_stock_entry(frm, "Manufacture"), __("Create"));

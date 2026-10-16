@@ -53,16 +53,51 @@ def install_work_order_customizations():
 		{
 			"Work Order": [
 				{
-					"fieldname": "custom_use_manual_materials",
-					"label": "Manual Material Entry (No BOM)",
-					"fieldtype": "Check",
-					"default": "0",
+					"fieldname": "custom_production_mode",
+					"label": "Production Mode",
+					"fieldtype": "Select",
+					"options": "BOM\nAssembly\nDisassembly",
+					"default": "BOM",
 					"insert_after": "bom_no",
-					"description": "Use manually entered Required Items instead of BOM-derived materials.",
+					"description": "BOM uses the standard workflow. Assembly and Disassembly use manual Required Items without a BOM.",
 				}
 			]
 		},
 		update=True,
 	)
+	_hide_legacy_manual_material_field()
+	_migrate_legacy_manual_material_records()
 
 	make_property_setter("Work Order", "bom_no", "reqd", "0", "Check", for_doctype=False)
+
+
+def _hide_legacy_manual_material_field():
+	"""Retire the checkbox from the form without deleting historical data."""
+	legacy_field = "Work Order-custom_use_manual_materials"
+	if frappe.db.exists("Custom Field", legacy_field):
+		frappe.db.set_value("Custom Field", legacy_field, {"hidden": 1, "read_only": 1})
+
+
+def _migrate_legacy_manual_material_records():
+	"""Existing checked records become Assembly, the nearest equivalent mode."""
+	if not (
+		frappe.db.has_column("Work Order", "custom_use_manual_materials")
+		and frappe.db.has_column("Work Order", "custom_production_mode")
+	):
+		return
+
+	frappe.db.sql(
+		"""
+		UPDATE `tabWork Order`
+		SET custom_production_mode = 'Assembly'
+		WHERE IFNULL(custom_use_manual_materials, 0) = 1
+			AND IFNULL(custom_production_mode, '') = ''
+		"""
+	)
+	frappe.db.sql(
+		"""
+		UPDATE `tabWork Order`
+		SET custom_production_mode = 'BOM'
+		WHERE IFNULL(custom_production_mode, '') = ''
+		"""
+	)
