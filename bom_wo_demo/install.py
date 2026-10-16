@@ -25,7 +25,9 @@ def sync_demo_doctypes():
 	uses the app package path, rather than module discovery, and makes missing
 	deployment files fail loudly with the precise path.
 	"""
-	doctype_root = Path(__file__).parent / "doctype"
+	# ``Bom Wo Demo`` is the app's module (not its package root), so Frappe
+	# resolves controllers as ``bom_wo_demo.bom_wo_demo.doctype...``.
+	doctype_root = Path(__file__).parent / "bom_wo_demo" / "doctype"
 	doctypes = (
 		"demo_assembly_item",
 		"demo_assembly_order",
