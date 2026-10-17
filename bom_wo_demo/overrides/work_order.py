@@ -42,6 +42,7 @@ class ManualMaterialsWorkOrder(WorkOrder):
 			return
 		return super().reset_use_multi_level_bom()
 
+	@frappe.whitelist()
 	def get_items_and_operations_from_bom(self):
 		"""Never replace manually maintained rows when standard JS calls this method."""
 		if self.use_manual_materials:
